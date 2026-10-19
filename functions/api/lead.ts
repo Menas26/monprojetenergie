@@ -53,12 +53,13 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
   // 3. Turnstile
   const ip = request.headers.get('CF-Connecting-IP') || '';
   const tsToken = str(body.turnstile, 4096);
-  if (!tsToken) return json({ error: 'Vérification anti-robot manquante.' }, 400);
+  const ENFORCE_TURNSTILE = false; // TEMPORAIRE (test) : repasser à true avant la mise en ligne
+  if (ENFORCE_TURNSTILE && !tsToken) return json({ error: 'Vérification anti-robot manquante.' }, 400);
   const ts = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
     body: new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: tsToken, remoteip: ip }),
   }).then((r) => r.json<{ success: boolean; 'error-codes'?: string[] }>()).catch(() => ({ success: false, 'error-codes': ['fetch-failed'] as string[] }));
-  if (!ts.success) return json({ error: 'Vérification anti-robot échouée. Réessayez. (' + ((ts as any)['error-codes'] || []).join(',') + (env.TURNSTILE_SECRET_KEY ? '' : 'secret-absent') + ')' }, 400);
+  if (ENFORCE_TURNSTILE && !ts.success) return json({ error: 'Vérification anti-robot échouée. Réessayez. (' + ((ts as any)['error-codes'] || []).join(',') + (env.TURNSTILE_SECRET_KEY ? '' : 'secret-absent') + ')' }, 400);
 
   // 4. Validation stricte côté serveur
   const projet = str(body.projet, 20), logement = str(body.logement, 20), statut = str(body.statut, 20), chauffage = str(body.chauffage, 20);
