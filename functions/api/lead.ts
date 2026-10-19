@@ -57,8 +57,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
   const ts = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
     body: new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: tsToken, remoteip: ip }),
-  }).then((r) => r.json<{ success: boolean }>()).catch(() => ({ success: false }));
-  if (!ts.success) return json({ error: 'Vérification anti-robot échouée. Réessayez.' }, 400);
+  }).then((r) => r.json<{ success: boolean; 'error-codes'?: string[] }>()).catch(() => ({ success: false, 'error-codes': ['fetch-failed'] as string[] }));
+  if (!ts.success) return json({ error: 'Vérification anti-robot échouée. Réessayez. (' + ((ts as any)['error-codes'] || []).join(',') + (env.TURNSTILE_SECRET_KEY ? '' : 'secret-absent') + ')' }, 400);
 
   // 4. Validation stricte côté serveur
   const projet = str(body.projet, 20), logement = str(body.logement, 20), statut = str(body.statut, 20), chauffage = str(body.chauffage, 20);
