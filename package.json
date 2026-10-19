@@ -1,0 +1,17 @@
+{
+  "name": "mon-projet-energie",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "pages:dev": "astro build && wrangler pages dev dist --compatibility-date=2026-10-01"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@supabase/supabase-js": "^2.118.0",
+    "astro": "^7.4.0"
+  },
+  "private": true,
+  "type": "module"
+}

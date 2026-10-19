@@ -1,0 +1,8 @@
+# SECRETS côté serveur. En local : copie ce fichier en .dev.vars. En production : Cloudflare Pages > Settings > Variables > "Secret".
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=clé-service-role-SECRÈTE
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+RESEND_API_KEY=re_xxxxxxxx
+RESEND_FROM=Mon Projet Énergie <demandes@monprojetenergie.fr>
+IP_SALT=une-longue-chaine-aleatoire
+ALLOWED_ORIGIN=https://monprojetenergie.fr

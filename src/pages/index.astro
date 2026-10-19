@@ -1,0 +1,141 @@
+---
+import Base from '../layouts/Base.astro';
+
+const title = 'Mon Projet Énergie | Étude gratuite de votre projet de rénovation énergétique';
+const description = 'Pompe à chaleur, isolation, panneaux photovoltaïques : décrivez votre projet en 2 minutes. Une entreprise spécialisée de votre département vous recontacte. Gratuit, sans engagement.';
+
+const faq = [
+  ['C’est quoi des panneaux photovoltaïques, concrètement ?', "Ce sont des panneaux, le plus souvent posés sur le toit, qui transforment la lumière du soleil en électricité. Cette électricité alimente d'abord votre maison (lumières, appareils, chauffage électrique) : c'est l'autoconsommation. Selon l'installation, le surplus peut être revendu au réseau. Ne les confondez pas avec les panneaux solaires thermiques, qui servent à chauffer de l'eau. La production dépend de l'orientation, de l'inclinaison de la toiture et de l'ensoleillement : c'est ce que l'étude de votre projet vérifie."],
+  ['Est-ce vraiment gratuit ?', "Vous ne nous payez rien. Nous sommes rémunérés par l'entreprise partenaire, uniquement si un chantier est réalisé."],
+  ['Puis-je bénéficier d\'aides financières ?', "Certaines aides existent selon vos revenus, votre logement et les travaux. Aucune n'est automatique. L'entreprise vérifie votre situation avec vous. Vous pouvez aussi consulter france-renov.gouv.fr, le service public officiel."],
+  ['Une pompe à chaleur convient-elle à tous les logements ?', "Pas toujours. Cela dépend notamment de l'isolation, du type de chauffage actuel et de la surface. C'est précisément l'objet de l'étude."],
+  ['Que deviennent mes données ?', "Elles sont transmises uniquement à l'entreprise partenaire de votre département, avec votre accord. Vous pouvez exercer vos droits à tout moment."],
+];
+const schema = [
+  { '@context': 'https://schema.org', '@type': 'Organization', name: 'Mon Projet Énergie', url: 'https://monprojetenergie.fr', telephone: '+33777122270', description: "Service de mise en relation entre particuliers et entreprises d'installation pour la rénovation énergétique. Ne réalise pas les travaux." },
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Mon Projet Énergie', url: 'https://monprojetenergie.fr', inLanguage: 'fr-FR' },
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+];
+---
+<Base title={title} description={description} schema={schema}>
+
+<header><div class="w">
+<a class="logo" href="#"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M4 16 17 5l13 11v13H4z" fill="none" stroke="var(--cta)" stroke-width="3" stroke-linejoin="round"/><path d="M17 26c-3 0-5-2-5-4.500 0-2.500 2.500-3.500 3-6.500 2 1.500 4 3 4 5.500.5-.5 1-1.500 1-2.500 1 1 2 2.500 2 3.500 0 2.500-2 4.500-5 4.500z" fill="var(--cta)"/></svg>Mon Projet Énergie</a>
+<a class="call hd" href="tel:+33777122270" aria-label="Appeler le 07 77 12 22 70"><i><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></i><span>Appeler<small>07 77 12 22 70</small></span></a>
+</div></header>
+
+<main>
+<section class="hero"><div class="w">
+<div>
+<h1>Quel projet souhaitez-vous lancer ?</h1>
+<p class="lead">Choisissez votre projet et répondez à quelques questions. Une entreprise spécialisée de votre département vous recontacte pour l'étudier avec vous.</p>
+<ul class="checks"><li>Gratuit et sans engagement</li><li>Moins de 2 minutes</li><li>Vous restez libre d'accepter ou de refuser le devis</li></ul>
+<a class="call" href="tel:+33777122270" style="margin-top:8px"><i><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></i><span>Vous préférez en parler ?<small>Appelez le 07 77 12 22 70, nous prenons votre projet par téléphone.</small></span></a>
+
+</div>
+
+<div class="card" id="demande">
+<h2 id="cardT">Demander l'étude de mon projet</h2>
+<p class="small" id="stepTxt" style="margin:0">Étape 1 sur 6</p>
+<div class="prog"><i id="bar"></i></div>
+<form id="f" novalidate>
+<fieldset data-s><legend>Votre projet</legend>
+<label class="opt"><input type="radio" name="projet" value="pac"><span>Pompe à chaleur air/eau</span></label>
+<label class="opt"><input type="radio" name="projet" value="isolation"><span>Isolation (murs, toiture)</span></label>
+<label class="opt"><input type="radio" name="projet" value="combles"><span>Combles et sous-sol</span></label>
+<label class="opt"><input type="radio" name="projet" value="solaire"><span>Panneaux photovoltaïques</span></label>
+<label class="opt"><input type="radio" name="projet" value="batiment"><span>Un bâtiment entier (immeuble, copropriété)</span></label></fieldset>
+
+<fieldset data-s hidden><legend>Votre logement est…</legend>
+<label class="opt"><input type="radio" name="logement" value="maison"><span>Une maison</span></label>
+<label class="opt"><input type="radio" name="logement" value="appartement"><span>Un appartement</span></label></fieldset>
+
+<fieldset data-s hidden><legend>Vous êtes…</legend>
+<label class="opt"><input type="radio" name="statut" value="proprietaire"><span>Propriétaire</span></label>
+<label class="opt"><input type="radio" name="statut" value="locataire"><span>Locataire</span></label></fieldset>
+
+<fieldset data-s hidden><legend>Votre chauffage actuel</legend>
+<label class="opt"><input type="radio" name="chauffage" value="fioul"><span>Chaudière fioul</span></label>
+<label class="opt"><input type="radio" name="chauffage" value="gaz"><span>Chaudière gaz</span></label>
+<label class="opt"><input type="radio" name="chauffage" value="electrique"><span>Chauffage électrique</span></label>
+<label class="opt"><input type="radio" name="chauffage" value="autre"><span>Autre</span></label></fieldset>
+
+<fieldset data-s hidden><legend>Où se situe votre logement ?</legend>
+<label class="f">Code postal du logement<input class="t" name="cp" inputmode="numeric" autocomplete="postal-code" maxlength="5"></label></fieldset>
+
+<fieldset data-s hidden><legend>Comment vous joindre ?</legend>
+<label class="f">Prénom<input class="t" name="prenom" autocomplete="given-name"></label>
+<label class="f">Nom<input class="t" name="nom" autocomplete="family-name"></label>
+<label class="f">Téléphone<input class="t" name="tel" type="tel" autocomplete="tel"></label>
+<label class="f">Email<input class="t" name="email" type="email" autocomplete="email"></label>
+<label class="consent"><input type="checkbox" name="consent"><span>J'accepte que mes coordonnées et les informations ci-dessus soient transmises à une entreprise partenaire d'installation de mon département, afin d'être rappelé(e) par téléphone, à ma demande, au sujet de mon projet de rénovation énergétique. Voir la <a href="#" data-d="d-pc">politique de confidentialité</a> et la liste des partenaires.</span></label></fieldset>
+
+<div class="hp" aria-hidden="true"><label>Ne pas remplir<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+<div class="ts" id="ts"></div>
+<p class="err" id="err" role="alert" aria-live="polite"></p>
+<div class="nav"><button type="button" class="btn alt" id="prev" hidden>Retour</button><button type="button" class="btn" id="next">Continuer</button></div>
+</form>
+<div id="ok" hidden style="text-align:center;padding:28px 0"><svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="34" fill="var(--ok)"/><path d="M21 37l10 10 20-22" fill="none" stroke="var(--ctat)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg><h2 role="status" style="margin:18px 0 0">Votre demande a bien été envoyée</h2></div>
+</div>
+</div></section>
+
+<div class="w" style="padding-top:32px"><p style="border:2px solid var(--line);border-radius:8px;padding:16px 20px;margin:0;max-width:none">Avant de vous engager, le service public vous informe gratuitement pour préparer et sécuriser votre projet : <a href="https://france-renov.gouv.fr/servicepublic" target="_blank" rel="noopener"><strong>www.france-renov.gouv.fr</strong></a></p></div>
+<section class="s"><div class="w">
+<h2>Comment ça se passe</h2>
+<ol class="steps">
+<li><h3>Vous décrivez votre logement</h3><p>Quelques questions simples, sans document à fournir.</p></li>
+<li><h3>Une entreprise vous recontacte</h3><p>Un installateur de votre département prend contact avec vous pour convenir d'un échange.</p></li>
+<li><h3>Vous décidez en connaissance de cause</h3><p>L'entreprise étudie votre projet et vous remet un devis. Vous êtes libre de l'accepter ou non.</p></li>
+</ol></div></section>
+
+<section class="s band"><div class="w">
+<h2>Notre rôle, en toute transparence</h2>
+<div class="two">
+<div><h3>Ce que nous faisons</h3><ul><li>Vous mettre en relation avec des entreprises d'installation sélectionnées de votre secteur.</li><li>Ne transmettre que les informations nécessaires, avec votre accord.</li></ul></div>
+<div><h3>Ce que nous ne faisons pas</h3><ul><li>Réaliser les travaux ou établir le devis.</li><li>Vous promettre une aide : un éventuel montant dépend de votre situation et se vérifie au cas par cas.</li><li>Agir au nom de l'État, de l'Anah ou de France Rénov'.</li></ul></div>
+</div></div></section>
+
+<section class="s"><div class="w" style="max-width:800px">
+<h2>Questions fréquentes</h2>
+<details><summary>C’est quoi des panneaux photovoltaïques, concrètement ?</summary><p>Ce sont des panneaux, le plus souvent posés sur le toit, qui transforment la lumière du soleil en électricité. Cette électricité alimente d'abord votre maison (lumières, appareils, chauffage électrique) : c'est l'autoconsommation. Selon l'installation, le surplus peut être revendu au réseau. Ne les confondez pas avec les panneaux solaires thermiques, qui servent à chauffer de l'eau. La production dépend de l'orientation, de l'inclinaison de la toiture et de l'ensoleillement : c'est ce que l'étude de votre projet vérifie.</p></details>
+<details><summary>Est-ce vraiment gratuit ?</summary><p>Vous ne nous payez rien. Nous sommes rémunérés par l'entreprise partenaire, uniquement si un chantier est réalisé.</p></details>
+<details><summary>Puis-je bénéficier d'aides financières ?</summary><p>Certaines aides existent selon vos revenus, votre logement et les travaux. Aucune n'est automatique. L'entreprise vérifie votre situation avec vous. Vous pouvez aussi consulter france-renov.gouv.fr, le service public officiel.</p></details>
+<details><summary>Une pompe à chaleur convient-elle à tous les logements ?</summary><p>Pas toujours. Cela dépend notamment de l'isolation, du type de chauffage actuel et de la surface. C'est précisément l'objet de l'étude.</p></details>
+<details><summary>Que deviennent mes données ?</summary><p>Elles sont transmises uniquement à l'entreprise partenaire de votre département, avec votre accord. Vous pouvez exercer vos droits à tout moment, voir la politique de confidentialité.</p></details>
+<p style="margin-top:28px"><a class="btn" href="#demande">Demander l'étude de mon projet</a></p>
+</div></section>
+</main>
+
+<footer><div class="w">
+<p>[Raison sociale] · [Forme juridique] · SIREN [à compléter] · France entière · mendel770s@gmail.com</p>
+<p><a href="#" data-d="d-ml">Mentions légales</a><a href="#" data-d="d-pc">Politique de confidentialité</a><a href="#" data-d="d-ck">Cookies</a></p>
+</div></footer>
+
+<dialog id="d-ml"><h2>Mentions légales</h2>
+<h3>Éditeur du site</h3><p>[Nom ou raison sociale], [forme juridique], SIREN [à compléter]<br>France entière<br>Email : mendel770s@gmail.com · Téléphone : 07 77 12 22 70<br>Directeur de la publication : [nom]</p>
+<h3>Hébergeur</h3><p>Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, États-Unis</p>
+<h3>Notre rôle</h3><p>Mon Projet Énergie est un service de mise en relation. Nous ne réalisons pas les travaux et nous ne sommes ni l'Anah ni France Rénov'. Les travaux sont réalisés par des entreprises indépendantes, qui établissent leurs propres devis. Vous ne nous payez rien : nous sommes rémunérés par les entreprises partenaires.</p>
+<form method="dialog" style="margin-top:20px"><button class="btn alt">Fermer</button></form></dialog>
+
+<dialog id="d-pc"><h2>Politique de confidentialité</h2>
+<h3>Qui collecte vos données</h3><p>[Nom ou raison sociale], SIREN [à compléter], responsable du traitement. Contact : mendel770s@gmail.com.</p>
+<h3>Données collectées</h3><p>Votre projet, le type de logement, votre statut (propriétaire ou locataire), votre chauffage actuel, le code postal du logement, vos nom, prénom, téléphone et email, la date de la demande et le texte du consentement que vous avez accepté.</p>
+<h3>Pourquoi, et sur quelle base</h3><ul><li>Transmettre votre demande à une entreprise partenaire de votre département, qui vous rappelle à votre demande : votre consentement.</li><li>Conserver la preuve de votre consentement : [base à confirmer avec un juriste].</li><li>Mesure d'audience et publicité : uniquement si vous les acceptez dans le bandeau cookies.</li></ul>
+<h3>Qui reçoit vos données</h3><p>L'entreprise partenaire de votre département : [liste des partenaires à compléter]. Nos prestataires techniques : Cloudflare (hébergement), Supabase (base de données, région Europe), Resend (envoi d'emails).</p>
+<h3>Durée de conservation</h3><p>[à définir avec un juriste]</p>
+<h3>Vos droits</h3><p>Vous pouvez accéder à vos données, les corriger, les effacer, vous opposer à leur usage ou retirer votre accord à tout moment, en écrivant à mendel770s@gmail.com. Vous pouvez aussi saisir la CNIL (cnil.fr).</p>
+<form method="dialog" style="margin-top:20px"><button class="btn alt">Fermer</button></form></dialog>
+
+<dialog id="d-ck"><h2>Cookies</h2>
+<p>Ce site ne dépose de cookies de mesure d'audience ou de publicité (Google Analytics, Google Ads) qu'avec votre accord. Sans accord, aucun n'est déposé. Votre choix est mémorisé sur votre appareil et modifiable à tout moment.</p>
+<div class="nav"><button class="btn alt" data-c="no">Tout refuser</button><button class="btn alt" data-c="yes">Tout accepter</button></div>
+<form method="dialog" style="margin-top:16px"><button class="btn alt">Fermer</button></form></dialog>
+
+<div id="ck" role="region" aria-label="Cookies" hidden><p>Nous utilisons des cookies de mesure d'audience et de publicité uniquement avec votre accord. <a href="#" data-d="d-ck">En savoir plus</a></p>
+<div class="nav"><button class="btn alt" data-c="no">Tout refuser</button><button class="btn alt" data-c="yes">Tout accepter</button></div></div>
+<div id="toast" role="status" style="position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:14px 22px;border-radius:999px;font-weight:600;z-index:40;display:none;max-width:90vw;text-align:center"></div>
+
+<script>
+  import '../scripts/app.ts';
+</script>
+</Base>

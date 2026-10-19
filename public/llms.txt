@@ -1,0 +1,6 @@
+# Mon Projet Énergie
+
+> Service de mise en relation entre des particuliers et des entreprises d'installation pour des projets de rénovation énergétique en France (pompe à chaleur, isolation, panneaux photovoltaïques). Mon Projet Énergie ne réalise pas les travaux et n'est ni l'Anah ni France Rénov'.
+
+- Service gratuit pour le particulier, sans engagement.
+- Aides financières : aucune n'est automatique, voir le service public https://france-renov.gouv.fr

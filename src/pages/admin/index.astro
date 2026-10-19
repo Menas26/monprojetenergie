@@ -1,0 +1,170 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Administration" description="Espace privé" noindex={true}>
+  <div class="w" style="padding-top:32px;padding-bottom:64px;max-width:1280px">
+    <h1 style="font-size:1.6rem;margin-bottom:20px">Tableau de bord</h1>
+
+    <form id="login" style="max-width:380px">
+      <label class="f">Email<input class="t" id="em" type="email" autocomplete="username" required></label>
+      <label class="f">Mot de passe<input class="t" id="pw" type="password" autocomplete="current-password" required></label>
+      <button class="btn" type="submit">Se connecter</button>
+      <p class="err" id="loginErr" role="alert"></p>
+    </form>
+
+    <div id="app" hidden>
+      <p style="margin:0 0 16px"><button class="btn alt" id="out" style="min-height:40px">Se déconnecter</button> <button class="btn alt" id="refresh" style="min-height:40px">Actualiser</button></p>
+      <div id="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px"></div>
+      <h2 style="font-size:1.2rem;margin-bottom:10px">Par campagne</h2>
+      <div style="overflow-x:auto;margin-bottom:28px"><table id="camp" class="adm"></table></div>
+      <h2 style="font-size:1.2rem;margin-bottom:10px">Prospects <span class="small" id="count"></span></h2>
+      <div style="overflow-x:auto"><table id="tbl" class="adm"></table></div>
+      <p class="err" id="appErr" role="alert"></p>
+    </div>
+  </div>
+</Base>
+
+<style is:global>
+  table.adm{border-collapse:collapse;width:100%;font-size:.9rem;line-height:1.35}
+  table.adm th,table.adm td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;white-space:nowrap}
+  table.adm th{background:var(--mist);font-weight:700}
+  table.adm select,table.adm input{font:inherit;padding:6px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);max-width:130px}
+  table.adm tr.late td{background:#fff3cd;color:#3b2f00}
+  .stat{border:1px solid var(--line);border-radius:8px;padding:12px 14px}.stat b{display:block;font-size:1.5rem}
+</style>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+
+  const url = import.meta.env.PUBLIC_SUPABASE_URL as string;
+  const anon = import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string;
+  if (!url || !anon) { document.getElementById('login')!.hidden = true; document.getElementById('loginErr')!.textContent = ''; document.querySelector('h1')!.after('Base de données non configurée.'); throw new Error('Supabase non configuré'); }
+  const sb = createClient(url, anon); // clé anon : publique par conception, ne donne accès à rien sans connexion admin + RLS
+
+  const STATUTS = ['nouveau', 'sans_partenaire', 'transmis', 'rdv', 'devis', 'signe', 'installe', 'paye', 'perdu'];
+  const C_STATUTS = ['attendue', 'validee', 'payee', 'annulee'];
+  const PROJ: Record<string, string> = { pac: 'PAC', isolation: 'Isolation', combles: 'Combles/sous-sol', solaire: 'Photovoltaïque', batiment: 'Bâtiment' };
+  const $ = (id: string) => document.getElementById(id)!;
+  const eur = (n: number) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+
+  // Construction DOM sans innerHTML : les données des prospects viennent du public, elles ne doivent jamais être interprétées comme du HTML
+  function h(tag: string, attrs: Record<string, string> | null, ...kids: (Node | string)[]) {
+    const el = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    for (const k of kids) el.append(k);
+    return el;
+  }
+  function select(opts: string[], value: string, onChange: (v: string) => void, labels?: Record<string, string>) {
+    const s = document.createElement('select');
+    for (const o of opts) { const op = h('option', { value: o }, labels?.[o] ?? o) as HTMLOptionElement; op.selected = o === value; s.append(op); }
+    s.addEventListener('change', () => onChange(s.value));
+    return s;
+  }
+  function field(type: string, value: string | number | null, onChange: (v: string) => void, extra: Record<string, string> = {}) {
+    const i = h('input', { type, ...extra }) as HTMLInputElement;
+    i.value = value == null ? '' : String(value);
+    i.addEventListener('change', () => onChange(i.value));
+    return i;
+  }
+
+  let partners: any[] = [];
+  const setErr = (m: string) => { $('appErr').textContent = m; };
+
+  async function patchLead(id: string, patch: Record<string, unknown>) {
+    const { error } = await sb.from('leads').update(patch).eq('id', id);
+    if (error) setErr(error.message); else setErr('');
+  }
+  async function saveCommission(lead: any, patch: Record<string, unknown>) {
+    const base = { lead_id: lead.id, partner_id: lead.partner_id, updated_at: new Date().toISOString() };
+    const merged = { ...base, ...(lead.commissions?.[0] ?? {}), ...patch };
+    delete (merged as any).id;
+    const { error } = await sb.from('commissions').upsert(merged, { onConflict: 'lead_id' });
+    if (error) setErr(error.message); else { setErr(''); await load(); }
+  }
+
+  async function load() {
+    const [{ data: leads, error }, { data: ps }] = await Promise.all([
+      sb.from('leads').select('*, partners(name), commissions(*)').order('created_at', { ascending: false }).limit(500),
+      sb.from('partners').select('id,name').order('name'),
+    ]);
+    if (error) { setErr(error.message); return; }
+    partners = ps ?? [];
+    const rows = leads ?? [];
+    $('count').textContent = `(${rows.length})`;
+
+    // Indicateurs
+    const sum = (f: (r: any) => number) => rows.reduce((a, r) => a + f(r), 0);
+    const com = (r: any) => r.commissions?.[0];
+    const stats: [string, string][] = [
+      ['Prospects', String(rows.length)],
+      ['Transmis', String(rows.filter((r) => r.transmitted_at).length)],
+      ['Installés', String(rows.filter((r) => ['installe', 'paye'].includes(r.statut)).length)],
+      ['Commissions attendues', eur(sum((r) => (['attendue'].includes(com(r)?.status) ? Number(com(r)?.expected_amount ?? 0) : 0)))],
+      ['Commissions validées', eur(sum((r) => (com(r)?.status === 'validee' ? Number(com(r)?.validated_amount ?? 0) : 0)))],
+      ['Commissions payées', eur(sum((r) => (com(r)?.status === 'payee' ? Number(com(r)?.validated_amount ?? 0) : 0)))],
+    ];
+    $('stats').replaceChildren(...stats.map(([l, v]) => h('div', { class: 'stat' }, h('b', null, v), l)));
+
+    // Par campagne
+    const byCamp = new Map<string, { n: number; inst: number; paid: number }>();
+    for (const r of rows) {
+      const k = r.utm_campaign || r.utm_source || '(direct / inconnu)';
+      const c = byCamp.get(k) ?? { n: 0, inst: 0, paid: 0 };
+      c.n++; if (['installe', 'paye'].includes(r.statut)) c.inst++;
+      if (com(r)?.status === 'payee') c.paid += Number(com(r)?.validated_amount ?? 0);
+      byCamp.set(k, c);
+    }
+    $('camp').replaceChildren(
+      h('tr', null, ...['Campagne', 'Prospects', 'Installés', 'Commission payée'].map((t) => h('th', null, t))),
+      ...[...byCamp].map(([k, c]) => h('tr', null, h('td', null, k), h('td', null, String(c.n)), h('td', null, String(c.inst)), h('td', null, eur(c.paid)))),
+    );
+
+    // Prospects
+    const head = ['Date', 'Prospect', 'Projet', 'CP', 'Source', 'Partenaire', 'Statut', 'RDV', 'Devis', 'Signé', 'Installé', 'Comm. attendue', 'Comm. validée', 'Comm. statut', 'Payée le', 'Notes'];
+    const fiveDays = 5 * 24 * 3600 * 1000;
+    $('tbl').replaceChildren(
+      h('tr', null, ...head.map((t) => h('th', null, t))),
+      ...rows.map((r) => {
+        const late = r.statut === 'transmis' && r.transmitted_at && Date.now() - new Date(r.transmitted_at).getTime() > fiveDays;
+        const c = com(r);
+        const tr = h('tr', late ? { class: 'late', title: 'Transmis depuis plus de 5 jours sans retour du partenaire' } : null,
+          h('td', null, new Date(r.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })),
+          h('td', null, `${r.prenom} ${r.nom}`, h('br', null), r.telephone, h('br', null), r.email),
+          h('td', null, PROJ[r.projet] ?? r.projet),
+          h('td', null, r.code_postal),
+          h('td', null, r.utm_campaign || r.utm_source || '—'),
+          h('td', null, select(['', ...partners.map((p) => p.id)], r.partner_id ?? '', (v) => patchLead(r.id, { partner_id: v || null }), Object.fromEntries([['', '— aucun —'], ...partners.map((p) => [p.id, p.name])]))),
+          h('td', null, select(STATUTS, r.statut, (v) => patchLead(r.id, { statut: v }))),
+          h('td', null, field('date', r.rdv_at, (v) => patchLead(r.id, { rdv_at: v || null }))),
+          h('td', null, field('date', r.devis_at, (v) => patchLead(r.id, { devis_at: v || null }))),
+          h('td', null, field('date', r.signe_at, (v) => patchLead(r.id, { signe_at: v || null }))),
+          h('td', null, field('date', r.installe_at, (v) => patchLead(r.id, { installe_at: v || null }))),
+          h('td', null, field('number', c?.expected_amount, (v) => saveCommission(r, { expected_amount: v === '' ? null : Number(v) }), { step: '0.01', style: 'width:90px' })),
+          h('td', null, field('number', c?.validated_amount, (v) => saveCommission(r, { validated_amount: v === '' ? null : Number(v) }), { step: '0.01', style: 'width:90px' })),
+          h('td', null, select(C_STATUTS, c?.status ?? 'attendue', (v) => saveCommission(r, { status: v }))),
+          h('td', null, field('date', c?.paid_at, (v) => saveCommission(r, { paid_at: v || null }))),
+          h('td', null, field('text', r.notes, (v) => patchLead(r.id, { notes: v || null }), { maxlength: '500' })),
+        );
+        return tr;
+      }),
+    );
+  }
+
+  async function start() {
+    const { data } = await sb.auth.getSession();
+    const ok = !!data.session;
+    $('login').hidden = ok;
+    $('app').hidden = !ok;
+    if (ok) await load();
+  }
+
+  $('login').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const { error } = await sb.auth.signInWithPassword({ email: ($('em') as HTMLInputElement).value, password: ($('pw') as HTMLInputElement).value });
+    $('loginErr').textContent = error ? 'Connexion refusée.' : '';
+    if (!error) start();
+  });
+  $('out').addEventListener('click', async () => { await sb.auth.signOut(); start(); });
+  $('refresh').addEventListener('click', () => load());
+  start();
+</script>
