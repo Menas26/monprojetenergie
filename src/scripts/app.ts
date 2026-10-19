@@ -9,7 +9,7 @@ let TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
 const configReady: Promise<void> = TURNSTILE_SITE_KEY
   ? Promise.resolve()
   : fetch('/api/config').then((r) => r.json()).then((c) => { if (c?.turnstile) TURNSTILE_SITE_KEY = c.turnstile as string; }).catch(() => {});
-const FORM_ENABLED = import.meta.env.PUBLIC_FORM_ENABLED === 'true';
+const FORM_ENABLED = import.meta.env.PUBLIC_FORM_ENABLED !== 'false';
 const GTM_ID = import.meta.env.PUBLIC_GTM_ID as string | undefined;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
