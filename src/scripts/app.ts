@@ -213,5 +213,10 @@ nextBtn.addEventListener('click', () => {
   if (m) return;
   if (i < LAST) { i++; show(); } else { submit(); }
 });
+// AUTO_NEXT : un clic sur une réponse (étapes 1 à 4) passe directement à l'étape suivante
+form.addEventListener('change', (e) => {
+  const t = e.target as HTMLInputElement;
+  if (t.type === 'radio' && i < 4) setTimeout(() => nextBtn.click(), 250);
+});
 prevBtn.addEventListener('click', () => { if (i > 0) { i--; errEl.textContent = ''; show(); } });
 show();
