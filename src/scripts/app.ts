@@ -4,7 +4,11 @@
 const CONSENT_KEY = 'mpe_consent';
 const CONSENT_VERSION = 'v1';
 const PHONE_DISPLAY = '07 77 12 22 70';
-const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
+let TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
+// Si la clé n'est pas intégrée au build, on la lit au chargement depuis /api/config (valeur publique)
+const configReady: Promise<void> = TURNSTILE_SITE_KEY
+  ? Promise.resolve()
+  : fetch('/api/config').then((r) => r.json()).then((c) => { if (c?.turnstile) TURNSTILE_SITE_KEY = c.turnstile as string; }).catch(() => {});
 const FORM_ENABLED = import.meta.env.PUBLIC_FORM_ENABLED === 'true';
 const GTM_ID = import.meta.env.PUBLIC_GTM_ID as string | undefined;
 
@@ -104,7 +108,8 @@ let turnstileReady = false;
 const val = (name: string) => (form.elements.namedItem(name) as HTMLInputElement).value.trim();
 const checked = (name: string) => form.querySelector<HTMLInputElement>(`[name=${name}]:checked`)?.value ?? '';
 
-function loadTurnstile() {
+async function loadTurnstile() {
+  await configReady;
   if (turnstileReady || !TURNSTILE_SITE_KEY) return;
   turnstileReady = true;
   const s = document.createElement('script');
