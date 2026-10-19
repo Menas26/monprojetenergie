@@ -36,10 +36,17 @@ import Base from '../../layouts/Base.astro';
 <script>
   import { createClient } from '@supabase/supabase-js';
 
-  const url = import.meta.env.PUBLIC_SUPABASE_URL as string;
-  const anon = import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string;
-  if (!url || !anon) { document.getElementById('login')!.hidden = true; document.getElementById('loginErr')!.textContent = ''; document.querySelector('h1')!.after('Base de données non configurée.'); throw new Error('Supabase non configuré'); }
-  const sb = createClient(url, anon); // clé anon : publique par conception, ne donne accès à rien sans connexion admin + RLS
+  let sb: any = null;
+  async function init(): Promise<boolean> {
+    let url = import.meta.env.PUBLIC_SUPABASE_URL as string;
+    let anon = import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string;
+    if (!url || !anon) {
+      try { const c = await (await fetch('/api/config')).json(); url = url || c.supabaseUrl; anon = anon || c.supabaseAnon; } catch { /* ignore */ }
+    }
+    if (!url || !anon) { document.getElementById('login')!.hidden = true; document.querySelector('h1')!.after('Base de données non configurée.'); return false; }
+    sb = createClient(url, anon); // clé anon : publique par conception, ne donne accès à rien sans connexion admin + RLS
+    return true;
+  }
 
   const STATUTS = ['nouveau', 'sans_partenaire', 'transmis', 'rdv', 'devis', 'signe', 'installe', 'paye', 'perdu'];
   const C_STATUTS = ['attendue', 'validee', 'payee', 'annulee'];
@@ -166,5 +173,5 @@ import Base from '../../layouts/Base.astro';
   });
   $('out').addEventListener('click', async () => { await sb.auth.signOut(); start(); });
   $('refresh').addEventListener('click', () => load());
-  start();
+  init().then((ok) => { if (ok) start(); });
 </script>
